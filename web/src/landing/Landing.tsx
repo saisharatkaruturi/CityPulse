@@ -12,7 +12,8 @@ import { useI18n } from '../i18n';
 import type { Family } from '../lib';
 import { homeFor } from '../roles';
 import { groupCategories, matchReasons, reportTarget } from './helpers';
-import { IsoCity } from './IsoCity';
+import { Hero3D } from './Hero3D';
+import { Backdrop } from '../components/Backdrop';
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -148,7 +149,7 @@ function Hero() {
             </div>
           </div>
         </div>
-        <IsoCity />
+        <Hero3D />
       </div>
       <Router />
     </section>
@@ -173,6 +174,7 @@ function Slip() {
       </div>
       <div className="slip-wrap" data-reveal>
         <div className="slip" role="group" aria-label={t('landing.how.slip')}>
+          <span className="slip-track" aria-hidden="true"><span className="slip-token" /></span>
           <p className="slip-title"><LogoMark size={22} /> {t('landing.how.slip')}</p>
           {groups.map((g) => (
             <div key={g.head} className="slip-group">
@@ -245,6 +247,13 @@ function CityMap() {
           {NODES.map((n, i) => (
             <path key={n.family} d={n.path} pathLength={1} className={`route route-${n.family}`} style={{ transitionDelay: `${i * 140}ms` }} />
           ))}
+          {NODES.map((n, i) => (
+            <g key={`f-${n.family}`} className={`flow flow-${n.family}`}>
+              <circle r="9" className="flow-glow" />
+              <circle r="5" className="flow-dot" />
+              <animateMotion dur={`${3.2 + (i % 3) * 0.5}s`} begin={`${i * 0.45}s`} repeatCount="indefinite" path={n.path} />
+            </g>
+          ))}
           <g className="desk">
             <rect x="460" y="220" width="80" height="80" rx="14" />
             <path d="M478 270c8 0 7-16 16-17 6-1 9-5 12-10" fill="none" stroke="#f6f3ed" strokeWidth="4" strokeLinecap="round" />
@@ -275,6 +284,35 @@ function CityMap() {
 
 // ---- what can you report ------------------------------------------------------------------------
 
+/** 3D tilt with a glare that follows the pointer, for the category cards. Fine pointers only; off under
+ *  reduced motion. One delegated listener on the grid. */
+const canTilt = () => typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches && !prefersReducedMotion();
+function tilt(e: PointerEvent<HTMLElement>) {
+  if (!canTilt()) return;
+  const row = (e.target as HTMLElement).closest<HTMLElement>('.poster-row');
+  if (!row) return;
+  const r = row.getBoundingClientRect();
+  const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+  row.style.setProperty('--ry', `${(px - 0.5) * 10}deg`);
+  row.style.setProperty('--rx', `${(0.5 - py) * 10}deg`);
+  row.style.setProperty('--gx', `${px * 100}%`);
+  row.style.setProperty('--gy', `${py * 100}%`);
+  row.classList.add('is-tilting');
+}
+function reset(row: HTMLElement) {
+  row.classList.remove('is-tilting');
+  row.style.removeProperty('--rx');
+  row.style.removeProperty('--ry');
+}
+function untilt(e: PointerEvent<HTMLElement>) {
+  e.currentTarget.querySelectorAll<HTMLElement>('.poster-row.is-tilting').forEach(reset);
+}
+function untiltRow(e: PointerEvent<HTMLElement>) {
+  const row = (e.target as HTMLElement).closest<HTMLElement>('.poster-row');
+  const to = e.relatedTarget as HTMLElement | null;
+  if (row && !(to && row.contains(to))) reset(row);
+}
+
 function ReportList() {
   const { t, tk, locale } = useI18n();
   const { isStaff } = useAuth();
@@ -296,7 +334,7 @@ function ReportList() {
         {failed && <p className="notice notice-warn"><Icon.info size={16} />{t('landing.report.offline')}</p>}
         {isStaff && <p className="notice notice-info"><Icon.info size={16} />{t('landing.report.staffNote')}</p>}
       </div>
-      <div className="report-groups">
+      <div className="report-groups" onPointerMove={tilt} onPointerLeave={untilt} onPointerOut={untiltRow}>
         {groups.map((g) => {
           const I = FamilyIcon[g.family];
           return (
@@ -523,6 +561,7 @@ function Cta() {
                 <ellipse cx="200" cy="160" rx="34" ry="34" className="plane-ring" />
               </svg>
             </div>
+            <div className="ripples"><span /><span /><span /></div>
             <div className="pin">
               <svg viewBox="0 0 80 110" focusable="false">
                 <path d="M40 106S8 66 8 40a32 32 0 0 1 64 0c0 26-32 66-32 66z" className="pin-body" />
@@ -585,6 +624,7 @@ export default function Landing() {
   useEffect(() => { document.title = t('app.name'); }, [t]);
   return (
     <div className="landing aurora" ref={root}>
+      <Backdrop />
       <a className="skip-link" href="#main">{t('app.skip')}</a>
       <Header />
       <main id="main">

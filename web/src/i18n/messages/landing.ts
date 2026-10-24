@@ -142,6 +142,11 @@ export const en = {
 
   'landing.footer.title': 'Site links',
   'landing.footer.myReports': 'My reports',
+  'landing.art.example': 'Example report',
+  'landing.art.reportTitle': 'Pothole outside the school gate',
+  'landing.art.status': 'Status on this platform',
+  'landing.art.desk': 'Reports arriving at the desk',
+  'landing.art.caption': 'Illustration: an animated city block where reports from roads, water, lighting, sanitation, drainage and electrical problems travel along the streets to one desk. The cards show an example report, not live data.',
 } as const;
 
 export const te: Partial<Record<keyof typeof en, string>> = {
@@ -285,4 +290,9 @@ export const te: Partial<Record<keyof typeof en, string>> = {
 
   'landing.footer.title': 'సైట్ లింకులు',
   'landing.footer.myReports': 'నా ఫిర్యాదులు',
+  'landing.art.example': 'ఉదాహరణ ఫిర్యాదు',
+  'landing.art.reportTitle': 'స్కూల్ గేటు బయట గుంత',
+  'landing.art.status': 'ఈ ప్లాట్‌ఫామ్‌లో స్థితి',
+  'landing.art.desk': 'డెస్క్‌కి చేరుతున్న ఫిర్యాదులు',
+  'landing.art.caption': 'చిత్రం: రోడ్లు, నీరు, వీధి దీపాలు, పారిశుద్ధ్యం, డ్రైనేజీ, విద్యుత్ సమస్యల ఫిర్యాదులు వీధుల గుండా ఒకే డెస్క్‌కి చేరుతున్నట్లు చూపే కదిలే నగర చిత్రం. కార్డులు ఒక ఉదాహరణ మాత్రమే, ప్రత్యక్ష సమాచారం కాదు.',
 };

@@ -7,6 +7,7 @@ import { ApiError, type DemoAccount, type User } from '../api';
 import { useAuth } from '../auth';
 import { Icon } from '../components/Icon';
 import { LogoMark, Wordmark } from '../components/Logo';
+import { Backdrop } from '../components/Backdrop';
 import { Copyright, DemoBadge, Dialog, LanguageSwitch } from '../components/ui';
 import { useI18n, type MessageKey } from '../i18n';
 import { afterSignIn, looksLikeEmail } from '../landing/helpers';
@@ -21,6 +22,7 @@ export function AuthFrame({ children }: { children: ReactNode }) {
   const { t } = useI18n();
   return (
     <div className="auth aurora">
+      <Backdrop />
       <a className="skip-link" href="#main">{t('app.skip')}</a>
       <div className="auth-side">
         <header className="auth-top">

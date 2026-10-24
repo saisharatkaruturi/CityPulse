@@ -29,11 +29,11 @@
 
 .demo-entry { display: grid; gap: 10px; justify-items: start; margin-top: 8px; padding-top: 20px; border-top: 1px solid var(--rule); }
 .demo-entry .btn { border: var(--brutal-border); box-shadow: var(--brutal-shadow-sm); background: var(--pop-lemon); }
-.demo-entry .btn:hover { transform: translate(-1px, -1px); box-shadow: var(--brutal-shadow); }
+.demo-entry .btn:hover { transform: translateY(-1px); box-shadow: var(--lift-shadow); }
 
 .auth-art {
   background: var(--night); color: var(--night-ink); display: grid; align-content: center; gap: 22px; position: relative; overflow: hidden; isolation: isolate;
-  padding: clamp(32px, 5vw, 72px); border-radius: var(--radius-lg); border: 3px solid var(--ink); box-shadow: 10px 10px 0 var(--signal);
+  padding: clamp(32px, 5vw, 72px); border-radius: var(--radius-lg); border: 1px solid rgba(13, 22, 38, 0.12); box-shadow: var(--accent-glow);
   perspective: 900px;
 }
 .auth-art::before { content: ""; position: absolute; inset: 0; z-index: -1;
@@ -53,16 +53,16 @@
 .demo-group ul { list-style: none; display: grid; gap: 6px; margin-top: 4px; }
 .demo-account {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name go" "email go"; gap: 0 12px; width: 100%;
-  min-height: 58px; padding: 10px 14px; text-align: left; border: 2px solid var(--ink); border-radius: var(--radius-md); background: var(--surface);
+  min-height: 58px; padding: 10px 14px; text-align: left; border: 1px solid rgba(13, 22, 38, 0.12); border-radius: var(--radius-md); background: var(--surface);
   cursor: pointer; box-shadow: var(--brutal-shadow-sm);
   transition: transform var(--dur-fast) var(--spring), box-shadow var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
-.demo-account:hover:not(:disabled) { transform: translate(-2px, -2px); box-shadow: var(--brutal-shadow); background: var(--signal-soft); }
-.demo-account:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: none; }
+.demo-account:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--lift-shadow); background: var(--signal-soft); }
+.demo-account:active:not(:disabled) { transform: scale(0.99); }
 .demo-account:disabled { opacity: 0.6; cursor: progress; }
 .demo-name { grid-area: name; font-weight: 700; }
 .demo-email { grid-area: email; font-size: var(--step-small); color: var(--ink-3); }
-.demo-go { grid-area: go; align-self: center; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--paper-2); border: 2px solid var(--ink); transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
+.demo-go { grid-area: go; align-self: center; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--paper-2); border: 1px solid rgba(13, 22, 38, 0.12); transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
 .demo-account:hover:not(:disabled) .demo-go { background: var(--signal); transform: translateX(3px); }
 
 @media (max-width: 860px) {

@@ -5,6 +5,7 @@ import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react
 import { api, type ComplaintItem, type Notification, type Page } from '../api';
 import { useAuth } from '../auth';
 import { Icon } from '../components/Icon';
+import { Backdrop } from '../components/Backdrop';
 import { Wordmark } from '../components/Logo';
 import { Copyright, DemoBadge, LanguageSwitch } from '../components/ui';
 import { useI18n } from '../i18n';
@@ -66,6 +67,7 @@ export default function Shell() {
     <RefDataProvider key={user.id}>
       <a className="skip-link" href="#main">{t('app.skip')}</a>
       <div className="app aurora">
+        <Backdrop />
         {open && <button className="scrim" aria-label={t('nav.closeMenu')} onClick={() => setOpen(false)} />}
         <aside id="app-nav" className={`sidebar ${open ? 'open' : ''}`} aria-label={t('nav.main')}>
           <div className="actions" style={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>

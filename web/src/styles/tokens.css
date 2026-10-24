@@ -5,9 +5,11 @@
  *  - Apple-like base: Inter for reading and controls, generous space, large radii, spring motion.
  *  - Glassmorphism: frosted surfaces (header, sidebar, panels, dialogs) over a soft aurora colour mesh.
  *    Falls back to solid surfaces when backdrop-filter is unsupported or the user prefers less transparency.
- *  - Neo-brutalism: thick ink borders and hard offset shadows mark the things you press (primary actions,
- *    category cards, badges), with bold colour pops.
- *  - 3D: an isometric CSS city in the hero, tilt on interactive cards, the map pin. Static under reduced motion.
+ *  - Neo-brutal accents, kept small: the marigold highlight and crisp ink outlines on a few marks only.
+ *    Everything you press otherwise lifts on soft, layered Apple-style elevation (the "--brutal-*" names are
+ *    kept for compatibility but now resolve to soft elevation).
+ *  - 3D and motion: a WebGL city in the hero (CSS fallback), drifting colour orbs behind the glass, tilt and
+ *    glare on cards, light flowing along routes. All still under prefers-reduced-motion.
  *  - Minimalism: work screens (queues, tables, forms) stay quiet and solid so they are fast to scan.
  * Text always sits on a surface that keeps WCAG AA contrast; colour never carries meaning alone.
  */
@@ -41,19 +43,22 @@
   --night-ink: #f3f1ec;
   --night-ink-2: #b8c2d4;
 
-  /* glass */
-  --glass: rgba(255, 255, 255, 0.62);
-  --glass-strong: rgba(255, 255, 255, 0.82);
-  --glass-dark: rgba(13, 22, 38, 0.62);
-  --glass-edge: rgba(255, 255, 255, 0.7);
-  --glass-blur: saturate(170%) blur(22px);
-  --glass-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 12px 40px rgba(13, 22, 38, 0.10);
+  /* glass: translucent fill, deep blur, a lit top edge and a soft drop */
+  --glass: rgba(255, 255, 255, 0.46);
+  --glass-strong: rgba(255, 255, 255, 0.72);
+  --glass-dark: rgba(13, 22, 38, 0.55);
+  --glass-edge: rgba(255, 255, 255, 0.75);
+  --glass-blur: saturate(185%) blur(28px);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), inset 0 -1px 0 rgba(255, 255, 255, 0.2),
+    0 1px 2px rgba(13, 22, 38, 0.06), 0 18px 48px -12px rgba(13, 22, 38, 0.18);
 
-  /* neo-brutal */
-  --brutal-border: 2px solid var(--ink);
-  --brutal-shadow: 4px 4px 0 var(--ink);
-  --brutal-shadow-sm: 2px 2px 0 var(--ink);
-  --brutal-shadow-lg: 7px 7px 0 var(--ink);
+  /* elevation (formerly neo-brutal): soft, layered, Apple-like */
+  --brutal-border: 1px solid rgba(13, 22, 38, 0.10);
+  --brutal-shadow: 0 1px 2px rgba(13, 22, 38, 0.08), 0 8px 24px -6px rgba(13, 22, 38, 0.18);
+  --brutal-shadow-sm: 0 1px 2px rgba(13, 22, 38, 0.08), 0 4px 12px -4px rgba(13, 22, 38, 0.16);
+  --brutal-shadow-lg: 0 2px 4px rgba(13, 22, 38, 0.08), 0 24px 56px -12px rgba(13, 22, 38, 0.28);
+  --lift-shadow: 0 2px 4px rgba(13, 22, 38, 0.08), 0 16px 40px -10px rgba(13, 22, 38, 0.26);
+  --accent-glow: 0 8px 28px -6px rgba(255, 160, 40, 0.65);
 
   /* status: hue + words, never hue alone */
   --ok: #17663f;      --ok-bg: #d6f3e3;
@@ -138,10 +143,21 @@ ul, ol { margin: 0; padding: 0; }
 
 /* ---- style primitives ------------------------------------------------------------------------------ */
 
-/* Aurora: the soft colour mesh glass sits on. Fixed, behind everything, never moves under reduced motion. */
+/* Aurora: the colour field glass sits on. A soft mesh plus drifting orbs (components/Backdrop.tsx).
+   Fixed, behind everything, still under reduced motion. */
 .aurora { position: relative; isolation: isolate; }
+.backdrop { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.orb { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.75; will-change: transform; }
+.orb-1 { width: 46vmax; height: 46vmax; left: -12vmax; top: -14vmax; background: #8ec1ff; animation: orb-a 26s ease-in-out infinite alternate; }
+.orb-2 { width: 38vmax; height: 38vmax; right: -10vmax; top: -6vmax; background: #ffc56b; opacity: 0.6; animation: orb-b 31s ease-in-out infinite alternate; }
+.orb-3 { width: 44vmax; height: 44vmax; right: 4vmax; bottom: -20vmax; background: #7fe0bb; animation: orb-c 34s ease-in-out infinite alternate; }
+.orb-4 { width: 34vmax; height: 34vmax; left: -8vmax; bottom: -12vmax; background: #c3b4ff; animation: orb-b 29s ease-in-out infinite alternate-reverse; }
+.orb-5 { width: 24vmax; height: 24vmax; left: 38vmax; top: 30vh; background: #ff9f8f; opacity: 0.35; animation: orb-a 37s ease-in-out infinite alternate-reverse; }
+@keyframes orb-a { to { transform: translate3d(14vmax, 10vmax, 0) scale(1.15); } }
+@keyframes orb-b { to { transform: translate3d(-12vmax, 12vmax, 0) scale(0.9); } }
+@keyframes orb-c { to { transform: translate3d(-16vmax, -10vmax, 0) scale(1.1); } }
 .aurora::before {
-  content: ""; position: fixed; inset: -20vmax; z-index: -1; pointer-events: none;
+  content: ""; position: fixed; inset: -20vmax; z-index: -2; pointer-events: none;
   background:
     radial-gradient(42vmax 34vmax at 8% 6%, rgba(156, 201, 255, 0.95), transparent 68%),
     radial-gradient(36vmax 30vmax at 92% 10%, rgba(255, 179, 64, 0.6), transparent 68%),
@@ -162,6 +178,14 @@ ul, ol { margin: 0; padding: 0; }
 }
 .glass-strong { background: var(--glass-strong); }
 .brutal { border: var(--brutal-border); box-shadow: var(--brutal-shadow); }
+
+/* Glass sheen: a diagonal light across the top of a glass surface. Purely decorative. */
+.glass { position: relative; isolation: isolate; }
+.glass::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.08) 38%, transparent 60%);
+  mix-blend-mode: soft-light;
+}
 
 /* Without blur support, or when the user asks for less transparency, glass becomes a solid surface. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
@@ -193,5 +217,5 @@ ul, ol { margin: 0; padding: 0; }
     animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important; scroll-behavior: auto !important;
   }
-  .aurora::before { animation: none; }
+  .aurora::before, .orb { animation: none; }
 }
