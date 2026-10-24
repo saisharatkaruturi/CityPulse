@@ -418,3 +418,6 @@
 }
 .motion-ok .pin-scene.is-in .pin { animation: pin-drop 900ms var(--spring) 200ms both, pin-float 4s ease-in-out 1.2s infinite; }
 @media (prefers-reduced-motion: reduce) { .motion-ok .pin-scene.is-in .pin { animation: none; } }
+
+/* Solid fields: the dark sections are one navy, without coloured glows. */
+.cta::before { display: none; }

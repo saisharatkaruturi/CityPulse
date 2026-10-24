@@ -143,24 +143,22 @@ ul, ol { margin: 0; padding: 0; }
 .aurora::before {
   content: ""; position: fixed; inset: -20vmax; z-index: -2; pointer-events: none;
   background:
-    radial-gradient(42vmax 34vmax at 8% 6%, rgba(156, 201, 255, 0.95), transparent 68%),
-    radial-gradient(36vmax 30vmax at 92% 10%, rgba(255, 179, 64, 0.6), transparent 68%),
-    radial-gradient(44vmax 34vmax at 72% 96%, rgba(143, 227, 191, 0.85), transparent 68%),
-    radial-gradient(34vmax 28vmax at 4% 90%, rgba(201, 188, 255, 0.8), transparent 68%),
-    radial-gradient(30vmax 24vmax at 50% 50%, rgba(255, 155, 138, 0.25), transparent 70%),
+    radial-gradient(48vmax 36vmax at 92% 4%, rgba(255, 190, 90, 0.38), transparent 70%),
+    radial-gradient(44vmax 34vmax at 4% 96%, rgba(255, 205, 130, 0.22), transparent 70%),
     var(--paper);
   animation: aurora-drift 40s ease-in-out infinite alternate;
 }
 @keyframes aurora-drift { to { transform: translate3d(2vmax, -1.5vmax, 0) scale(1.04); } }
 
-/* Drifting colour orbs behind the glass (components/Backdrop.tsx). Still under reduced motion. */
+/* Drifting glow behind the glass (components/Backdrop.tsx): one warm marigold family plus a faint cool
+   slate for depth, so the page reads as one calm colour. Still under reduced motion. */
 .backdrop { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
 .orb { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.7; will-change: transform; }
-.orb-1 { width: 46vmax; height: 46vmax; left: -12vmax; top: -14vmax; background: #8ec1ff; animation: orb-a 26s ease-in-out infinite alternate; }
-.orb-2 { width: 38vmax; height: 38vmax; right: -10vmax; top: -6vmax; background: #ffc56b; opacity: 0.6; animation: orb-b 31s ease-in-out infinite alternate; }
-.orb-3 { width: 44vmax; height: 44vmax; right: 4vmax; bottom: -20vmax; background: #7fe0bb; animation: orb-c 34s ease-in-out infinite alternate; }
-.orb-4 { width: 34vmax; height: 34vmax; left: -8vmax; bottom: -12vmax; background: #c3b4ff; animation: orb-b 29s ease-in-out infinite alternate-reverse; }
-.orb-5 { width: 24vmax; height: 24vmax; left: 38vmax; top: 30vh; background: #ff9f8f; opacity: 0.35; animation: orb-a 37s ease-in-out infinite alternate-reverse; }
+.orb-1 { width: 44vmax; height: 44vmax; right: -12vmax; top: -16vmax; background: #ffc768; opacity: 0.45; animation: orb-a 28s ease-in-out infinite alternate; }
+.orb-2 { width: 36vmax; height: 36vmax; left: -12vmax; top: 30vh; background: #ffdca0; opacity: 0.35; animation: orb-b 33s ease-in-out infinite alternate; }
+.orb-3 { width: 40vmax; height: 40vmax; right: 6vmax; bottom: -22vmax; background: #c9d8ee; opacity: 0.4; animation: orb-c 36s ease-in-out infinite alternate; }
+.orb-4 { display: none; }
+.orb-5 { display: none; }
 @keyframes orb-a { to { transform: translate3d(14vmax, 10vmax, 0) scale(1.15); } }
 @keyframes orb-b { to { transform: translate3d(-12vmax, 12vmax, 0) scale(0.9); } }
 @keyframes orb-c { to { transform: translate3d(-16vmax, -10vmax, 0) scale(1.1); } }
@@ -207,3 +205,8 @@ ul, ol { margin: 0; padding: 0; }
   }
   .aurora::before, .orb { animation: none; }
 }
+
+/* Single-colour background: one solid paper colour everywhere (no orbs, no colour mesh). Glass surfaces
+   stay translucent over it. */
+.backdrop { display: none; }
+.aurora::before { background: var(--paper); animation: none; }

@@ -71,3 +71,6 @@
   .auth-art { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .auth-mark, .field-error { animation: none; } }
+
+/* Solid field: one navy, without coloured glows. */
+.auth-art::before { display: none; }
