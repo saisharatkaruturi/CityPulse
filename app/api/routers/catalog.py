@@ -8,7 +8,7 @@ from typing import Annotated
 from fastapi import APIRouter, Header, Query, Request
 from sqlalchemy import or_, select
 
-from app.api.deps import DB, CurrentUser
+from app.api.deps import DB, MaybeUser
 from app.core import ratelimit
 from app.core.time import utcnow
 from app.domain.enums import AnnouncementState, ServiceType
@@ -58,15 +58,19 @@ def _lang(accept_language: str | None) -> str | None:
 
 
 @router.get("/services", response_model=ServiceSearchResponse, tags=["services"],
-            summary="Search or browse the service directory (deterministic keyword + taxonomy matching)")
-def search_services(request: Request, principal: CurrentUser, db: DB,
+            summary="Search or browse the service directory (public; deterministic keyword + taxonomy matching)")
+def search_services(request: Request, principal: MaybeUser, db: DB,
                     q: Annotated[str | None, Query(max_length=200)] = None,
                     category_id: uuid.UUID | None = None, service_type: ServiceType | None = None,
-                    limit: Annotated[int, Query(ge=1, le=50)] = 10) -> ServiceSearchResponse:
-    ratelimit.enforce(ratelimit.SEARCH, request, key=f"user:{principal.id}")
+                    limit: Annotated[int, Query(ge=1, le=50)] = 10,
+                    accept_language: Annotated[str | None, Header()] = None) -> ServiceSearchResponse:
+    ratelimit.enforce(ratelimit.SEARCH, request, key=f"user:{principal.id}" if principal else None)
     matches = intelligence.search_services(db, q.strip() if q else None, category_id,
                                            service_type.value if service_type else None, limit)
-    items = [ServiceSearchResult(service=service_out(m.service), score=m.score, matched_on=m.matched_on)
+    lang = _lang(accept_language)
+    items = [ServiceSearchResult(service=service_out(m.service), score=m.score, matched_on=m.matched_on,
+                                 matched_category=category_out(m.matched_category, lang)
+                                 if m.matched_category else None)
              for m in matches]
     return ServiceSearchResponse(items=items, total=len(items), no_match=not items,
                                  guidance=NO_MATCH_GUIDANCE if not items else None,
@@ -74,29 +78,29 @@ def search_services(request: Request, principal: CurrentUser, db: DB,
 
 
 @router.get("/categories", response_model=list[CategoryOut], tags=["categories"],
-            summary="Active categories. Labels are localised via Accept-Language when a translation exists.")
-def categories(principal: CurrentUser, db: DB,
+            summary="Active categories (public). Labels are localised via Accept-Language when a translation exists.")
+def categories(principal: MaybeUser, db: DB,
                accept_language: Annotated[str | None, Header()] = None,
                include_inactive: bool = False) -> list[CategoryOut]:
     q = select(Category).order_by(Category.code)
-    if not (include_inactive and principal.is_staff):
+    if not (include_inactive and principal is not None and principal.is_staff):
         q = q.where(Category.is_active.is_(True))
     lang = _lang(accept_language)
     return [category_out(c, lang) for c in db.scalars(q).all()]
 
 
-@router.get("/wards", response_model=list[WardOut], tags=["wards"])
-def wards(principal: CurrentUser, db: DB) -> list[WardOut]:
+@router.get("/wards", response_model=list[WardOut], tags=["wards"], summary="Supported areas (public)")
+def wards(principal: MaybeUser, db: DB) -> list[WardOut]:
     rows = db.scalars(select(Ward).where(Ward.is_active.is_(True)).order_by(Ward.code)).all()
     return [WardOut(id=w.id, code=w.code, name=w.name, is_active=w.is_active, has_boundary=bool(w.boundary),
                     provenance=w.provenance, is_demo=w.is_demo) for w in rows]
 
 
 @router.post("/routing/suggest", response_model=RoutingSuggestResponse, tags=["routing"],
-             summary="Preview the category and department for a description. No data is saved.")
-def suggest(req: RoutingSuggestRequest, request: Request, principal: CurrentUser,
+             summary="Preview the category and department for a description (public). No data is saved.")
+def suggest(req: RoutingSuggestRequest, request: Request, principal: MaybeUser,
             db: DB) -> RoutingSuggestResponse:
-    ratelimit.enforce(ratelimit.AI_SUGGEST, request, key=f"user:{principal.id}")
+    ratelimit.enforce(ratelimit.AI_SUGGEST, request, key=f"user:{principal.id}" if principal else None)
     alternatives: list[CategorySuggestionOut] = []
     best = None
     classifier, simulated, needs_review = "none", False, False
@@ -137,8 +141,8 @@ def suggest(req: RoutingSuggestRequest, request: Request, principal: CurrentUser
 
 
 @router.get("/announcements", response_model=list[AnnouncementOut], tags=["announcements"],
-            summary="Published, unexpired announcements (optionally for one ward)")
-def announcements(principal: CurrentUser, db: DB, ward_id: uuid.UUID | None = None) -> list[AnnouncementOut]:
+            summary="Published, unexpired announcements (public; optionally for one ward)")
+def announcements(principal: MaybeUser, db: DB, ward_id: uuid.UUID | None = None) -> list[AnnouncementOut]:
     now = utcnow()
     q = select(Announcement).where(Announcement.state == AnnouncementState.published,
                                    or_(Announcement.publish_until.is_(None), Announcement.publish_until > now))

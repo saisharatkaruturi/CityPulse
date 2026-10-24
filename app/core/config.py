@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     max_page_size: int = 100
     rate_limit_enabled: bool = True
 
+    # Built web UI (web/dist). Served at / when the folder exists; the API never depends on it.
+    web_dist_dir: str = "./web/dist"
+
     # Media
     media_root: str = "./var/media"
     orphan_media_max_age_hours: int = 24
@@ -82,6 +85,9 @@ class Settings(BaseSettings):
 
     # Demo
     demo_password: str = "demo-password-123"
+    # Demo mode shows the DEMO badge and offers the fictional seed accounts on the sign-in page.
+    # Unset means: on outside production, off in production. Set DEMO_MODE=true to run a public demo.
+    demo_mode: bool | None = None
 
     @field_validator("cors_origins", mode="before")
     @classmethod
@@ -107,6 +113,10 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.environment == Environment.production
+
+    @property
+    def demo_mode_enabled(self) -> bool:
+        return self.demo_mode if self.demo_mode is not None else not self.is_production
 
 
 class ConfigurationError(RuntimeError):

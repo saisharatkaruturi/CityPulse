@@ -36,6 +36,25 @@ class RoleGrantOut(Schema):
     role: Role
     department_id: uuid.UUID | None
     ward_id: uuid.UUID | None
+    # Lets the client name the role experience ("Road Supervisor", "Triage Desk") without a staff-only lookup.
+    department_code: str | None = None
+    department_name: str | None = None
+
+
+class DemoAccountOut(Schema):
+    group: str
+    email: str
+    display_name: str
+    description: str
+    password: str
+
+
+class MetaOut(Schema):
+    """Public runtime configuration for the web client. Holds no personal data."""
+
+    app_name: str
+    demo_mode: bool
+    demo_accounts: list[DemoAccountOut]
 
 
 class UserOut(Schema):

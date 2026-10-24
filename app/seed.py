@@ -78,30 +78,44 @@ WARDS = [(f"demo-w{i + 1}", f"Demo Ward {i + 1}", r, c) for i, (r, c) in enumera
 WARD_PROVENANCE = "FICTIONAL demo grid generated for development; not an official ward boundary"
 
 # code, label, parent code, synonyms, default priority, safety sensitive, telugu label
+# Telugu labels are everyday wording drafted for the demo; they have not been reviewed by a native speaker.
 CATEGORIES: list[tuple[str, str, str | None, list[str], Priority, bool, str | None]] = [
-    ("roads", "Roads & footpaths", None, ["road"], Priority.medium, False, None),
+    ("roads", "Roads & footpaths", None, ["road"], Priority.medium, False, "రోడ్లు, ఫుట్‌పాత్‌లు"),
     ("roads.pothole", "Pothole", "roads", ["pothole", "potholes", "crater", "road damage", "broken road"],
      Priority.medium, True, "గుంత"),
     ("roads.footpath", "Damaged footpath", "roads", ["footpath", "sidewalk", "pavement"], Priority.low, False,
-     None),
-    ("sanitation", "Sanitation", None, [], Priority.medium, False, None),
+     "పాడైన ఫుట్‌పాత్"),
+    ("sanitation", "Sanitation", None, [], Priority.medium, False, "పారిశుద్ధ్యం"),
     ("sanitation.garbage", "Garbage not collected", "sanitation",
      ["garbage", "trash", "waste", "rubbish", "litter", "dump", "garbage pile"], Priority.medium, False,
      "చెత్త సేకరణ లేదు"),
-    ("water", "Water supply", None, [], Priority.medium, False, None),
+    ("water", "Water supply", None, [], Priority.medium, False, "నీటి సరఫరా"),
     ("water.leak", "Water leakage", "water", ["leak", "leakage", "pipe burst", "burst pipe", "water leaking"],
      Priority.medium, False, "నీటి లీకేజీ"),
     ("water.no_supply", "No water supply", "water", ["no water", "water supply", "dry tap"], Priority.high, False,
-     None),
-    ("drainage", "Drainage", None, [], Priority.medium, False, None),
+     "నీళ్లు రావడం లేదు"),
+    ("drainage", "Drainage", None, [], Priority.medium, False, "డ్రైనేజీ"),
     ("drainage.blocked", "Blocked drain", "drainage",
      ["drain", "drainage", "sewer", "clogged", "overflow", "blocked drain", "manhole"], Priority.medium, True,
      "మూసుకుపోయిన కాలువ"),
-    ("lighting", "Street lighting", None, [], Priority.low, False, None),
+    ("lighting", "Street lighting", None, [], Priority.low, False, "వీధి దీపాలు"),
     ("lighting.streetlight", "Broken streetlight", "lighting",
      ["streetlight", "street light", "lamp", "light not working", "dark street"], Priority.low, True,
      "పనిచేయని వీధి దీపం"),
-    ("other.stray_animals", "Stray animals", None, ["stray", "dogs", "cattle"], Priority.medium, False, None),
+    # Electrical hazards on public infrastructure. No routing rule is seeded for these: without verified data
+    # about which office handles them, they go to the triage desk, where a person decides.
+    ("electrical", "Electrical hazards", None, [], Priority.high, True,
+     "విద్యుత్ ప్రమాదాలు"),
+    ("electrical.exposed_wire", "Exposed or hanging wires", "electrical",
+     ["exposed wire", "hanging wire", "live wire", "loose wire", "fallen wire", "sparking", "sparks",
+      "electric wire", "wires", "wire", "shock", "కరెంటు తీగ", "తీగలు"], Priority.high, True,
+     "బయటపడిన లేదా వేలాడుతున్న కరెంటు తీగలు"),
+    ("electrical.public_fixture", "Damaged electric pole or box", "electrical",
+     ["electric pole", "electrical pole", "current pole", "junction box", "electric box", "fuse box",
+      "meter box", "transformer", "pole leaning", "కరెంటు స్తంభం"], Priority.high, True,
+     "పాడైన కరెంటు స్తంభం లేదా బాక్స్"),
+    ("other.stray_animals", "Stray animals", None, ["stray", "dogs", "cattle"], Priority.medium, False,
+     "వీధి జంతువులు"),
     ("other.triage", "Other / not sure", None, [], Priority.medium, False, "ఇతర / తెలియదు"),
 ]
 
@@ -116,7 +130,15 @@ SLA: list[tuple[str, str | None, Priority | None, int, int]] = [
        ("Critical (illustrative)", None, Priority.critical, 2, 24),
        ("Water leakage (illustrative)", "water.leak", None, 12, 48)]
 
-SERVICES = [
+DEFAULT_SERVICE_INSTRUCTIONS = ("DEMO: submit a report through this app. No official contact details are listed "
+                                "because none have been verified.")
+ELECTRICAL_SAFETY = ("Keep away and keep others away. Do not touch it or try to fix it. If wires are sparking, "
+                     "someone is hurt, or anyone is in immediate danger, call 112 or your electricity provider's "
+                     "emergency line first. Reports here go to a person at the triage desk; this platform does "
+                     "not send emergency help.")
+
+# code, name, type, summary, synonyms, category codes, owner department, instructions (optional)
+SERVICES: list[tuple] = [
     ("report-road-damage", "Report a pothole or damaged road", ServiceType.complaint,
      "Report potholes, broken roads or damaged footpaths for repair.", ["pothole", "road repair"],
      ["roads.pothole", "roads.footpath"], "roads"),
@@ -133,6 +155,10 @@ SERVICES = [
     ("report-streetlight", "Report a broken streetlight", ServiceType.complaint,
      "Report streetlights that are off, flickering or damaged.", ["streetlight", "lamp"],
      ["lighting.streetlight"], "lighting"),
+    ("report-electrical-hazard", "Report an electrical hazard in a public place", ServiceType.complaint,
+     "Report exposed or hanging wires, a damaged electric pole, or an open junction box on a street or in a "
+     "public space.", ["electrical", "wire", "electric pole", "junction box", "sparking"],
+     ["electrical.exposed_wire", "electrical.public_fixture"], "triage", ELECTRICAL_SAFETY),
     ("water-connection-info", "New water connection (information)", ServiceType.information,
      "General information about requesting a new water connection. DEMO placeholder: eligibility, fees and "
      "documents are NOT listed because no verified source is configured.", ["water connection", "new tap"],
@@ -159,6 +185,18 @@ USERS: list[tuple[str, str, list[tuple[Role, str | None]]]] = [
     ("resident2", "Ravi (demo resident)", [(Role.resident, None)]),
     ("resident3", "Meena (demo resident)", [(Role.resident, None)]),
 ]
+# The accounts offered on the sign-in page in demo mode, grouped by the role experience they open.
+# (group, handle, one-line description). Served by GET /api/meta only when demo mode is on.
+DEMO_ACCOUNTS: list[tuple[str, str, str]] = [
+    ("resident", "resident1", "Reports issues, finds services and follows their own reports."),
+    ("resident", "resident2", "A second resident, for checking that reports stay private."),
+    ("road_officer", "roads.officer1", "Field officer in the Roads department; works the cases assigned to them."),
+    ("road_supervisor", "roads.supervisor", "Assigns, corrects and reviews Roads cases; sees Roads analytics."),
+    ("triage_desk", "triage.supervisor", "Reviews reports no rule could route, and sends them on."),
+    ("municipal_admin", "muni.admin", "Oversees every department, with city-wide analytics and export."),
+    ("auditor", "auditor", "Read-only access for checking records and history."),
+]
+
 OFFICER_TEAMS = {"roads.officer1": "Roads Crew A", "roads.officer2": "Roads Crew East",
                  "sanitation.officer": "Sanitation Crew", "water.officer": "Water Crew",
                  "drainage.officer": "Drainage Crew", "lighting.officer": "Lighting Crew"}
@@ -211,6 +249,9 @@ def seed_reference(db: Session) -> None:
                                   description=f"Demo category: {label}")
             db.add(cats[code])
             db.flush()
+        elif te and "te" not in (cats[code].labels_i18n or {}):
+            # Fill a missing translation without overwriting one an administrator has set.
+            cats[code].labels_i18n = {**(cats[code].labels_i18n or {}), "te": te}
     if not db.scalar(select(RoutingRule.id).limit(1)):
         for cat, dept, ward, team, prec in RULES:
             team_id = teams[(depts[dept].id, team)].id if team else None
@@ -223,13 +264,12 @@ def seed_reference(db: Session) -> None:
                              acknowledge_hours=ack, resolve_hours=res, effective_from=now - timedelta(days=365),
                              is_illustrative=True))
     existing_services = set(db.scalars(select(Service.code)).all())
-    for code, name, stype, summary, syn, cat_codes, dept in SERVICES:
+    for code, name, stype, summary, syn, cat_codes, dept, *extra in SERVICES:
         if code in existing_services:
             continue
         s = Service(code=code, name=name, summary=summary, service_type=stype, state=PublicationState.published,
                     synonyms=syn, owner_department_id=depts[dept].id, is_demo=True,
-                    instructions="DEMO: submit a report through this app. No official contact details are "
-                                 "listed because none have been verified.")
+                    instructions=extra[0] if extra else DEFAULT_SERVICE_INSTRUCTIONS)
         s.departments = [depts[dept]]
         s.categories = [cats[c] for c in cat_codes]
         db.add(s)

@@ -16,7 +16,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from sqlalchemy import Select, case, func, or_, select
+from sqlalchemy import Select, case, false, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -320,6 +320,7 @@ class ComplaintFilters:
     overdue: bool | None = None
     mine: bool = False
     unassigned: bool | None = None
+    assigned_to_me: bool = False
     sort: str = "-created_at"
 
 
@@ -337,7 +338,12 @@ def list_query(principal: Principal, f: ComplaintFilters) -> Select:
     if f.status:
         q = q.where(Complaint.status.in_(f.status))
     if f.category_id:
-        q = q.where(Complaint.category_id == f.category_id)
+        # A parent category (e.g. "electrical") matches its sub-categories too.
+        q = q.where(Complaint.category_id.in_(
+            select(Category.id).where(or_(Category.id == f.category_id, Category.parent_id == f.category_id))))
+    if f.assigned_to_me:
+        officer = principal.officer
+        q = q.where(Complaint.assigned_officer_id == officer.id) if officer is not None else q.where(false())
     if f.department_id:
         q = q.where(Complaint.department_id == f.department_id)
     if f.assigned_officer_id:

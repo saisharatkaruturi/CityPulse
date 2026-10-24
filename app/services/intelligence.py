@@ -117,51 +117,75 @@ class ServiceMatch:
     service: Service
     score: float
     matched_on: list[str]
+    matched_category: Category | None = None
+
+
+# Ranking weights. The kind of problem is the strongest signal: a service that handles the category the
+# description most likely belongs to should come first, ahead of services that merely share a word.
+W_BEST_CATEGORY = 6.0
+W_ALT_CATEGORY = 2.0
+W_NAME_PHRASE = 3.0
+W_NAME_TERM = 1.5
+W_SYNONYM = 2.0
+W_DESCRIPTION_TERM = 0.5
 
 
 def search_services(db: Session, query: str | None, category_id: uuid.UUID | None,
                     service_type: str | None, limit: int) -> list[ServiceMatch]:
-    """Deterministic search over published/unavailable services by name, synonyms, summary, category."""
+    """Deterministic ranking over published/unavailable services. No machine learning is involved.
+
+    Signals, strongest first: the service handles the category the query is most likely about (keyword
+    classification over category labels, synonyms and translations); the query appears in the service name;
+    service synonyms; words in the summary/instructions. Ties break on name, then code, so order is stable.
+    """
     q = select(Service).where(Service.state.in_([PublicationState.published, PublicationState.unavailable]))
     if service_type:
         q = q.where(Service.service_type == service_type)
     services = list(db.scalars(q).all())
     if category_id is not None:
-        services = [s for s in services if any(c.id == category_id for c in s.categories)]
+        services = [s for s in services if any(c.id == category_id or c.parent_id == category_id
+                                               for c in s.categories)]
     if not query:
-        return [ServiceMatch(s, 1.0, ["browse"]) for s in sorted(services, key=lambda s: s.name)][:limit]
+        return [ServiceMatch(s, 1.0, ["browse"]) for s in sorted(services, key=lambda s: (s.name, s.code))][:limit]
 
     qnorm = normalize(query)
     qtok = tokens(query) - _STOPWORDS
-    # Category suggestion lets "streetlight not working" find the lighting service via taxonomy.
     suggested = suggest_category(db, query)
-    suggested_ids = {s.category.id for s in ([suggested.best] if suggested.best else []) + suggested.alternatives}
+    best_cat = suggested.best.category if suggested.best else None
+    alt_ids = {s.category.id for s in suggested.alternatives}
 
     matches: list[ServiceMatch] = []
     for s in services:
         score = 0.0
         why: list[str] = []
+        matched_cat: Category | None = None
+        cat_ids = {c.id for c in s.categories}
+        if best_cat is not None and best_cat.id in cat_ids:
+            score += W_BEST_CATEGORY * (0.5 + suggested.best.confidence / 2)  # type: ignore[union-attr]
+            why.append("category")
+            matched_cat = best_cat
+        elif alt_ids & cat_ids:
+            score += W_ALT_CATEGORY
+            why.append("related_category")
+            matched_cat = next(a.category for a in suggested.alternatives if a.category.id in cat_ids)
         name = normalize(s.name)
         if qnorm and qnorm in name:
-            score += 3
+            score += W_NAME_PHRASE
             why.append("name")
         elif qtok & tokens(s.name):
-            score += 1.5 * len(qtok & tokens(s.name))
+            score += W_NAME_TERM * len(qtok & tokens(s.name))
             why.append("name_terms")
         syn_hits = [syn for syn in (s.synonyms or []) if normalize(syn) in qnorm or tokens(syn) & qtok]
         if syn_hits:
-            score += 2 * len(syn_hits)
+            score += W_SYNONYM * len(syn_hits)
             why.append("synonyms")
         summary_hits = qtok & tokens(s.summary + " " + (s.instructions or ""))
         if summary_hits:
-            score += 0.5 * len(summary_hits)
+            score += W_DESCRIPTION_TERM * len(summary_hits)
             why.append("description")
-        if suggested_ids and any(c.id in suggested_ids for c in s.categories):
-            score += 2
-            why.append("category")
         if score > 0:
-            matches.append(ServiceMatch(s, round(score, 2), why))
-    matches.sort(key=lambda m: (-m.score, m.service.name))
+            matches.append(ServiceMatch(s, round(score, 2), why, matched_cat))
+    matches.sort(key=lambda m: (-m.score, m.service.name, m.service.code))
     return matches[:limit]
 
 

@@ -8,7 +8,6 @@ caller treats it as an untrusted suggestion (see app/services/intelligence.py).
 
 from __future__ import annotations
 
-import re
 import unicodedata
 from dataclasses import dataclass
 from typing import Protocol
@@ -45,15 +44,26 @@ class Classifier(Protocol):
     def classify(self, text: str, options: list[CategoryOption]) -> ClassificationResult: ...
 
 
-_WORD = re.compile(r"[\w']+", re.UNICODE)
-
-
 def normalize(text: str) -> str:
     return unicodedata.normalize("NFKC", text).casefold()
 
 
+def _word_char(ch: str) -> bool:
+    # `\w` alone drops combining marks, which splits Telugu (and other Indic) words into single letters:
+    # vowel signs and the anusvara are category M*, so they must count as part of a word.
+    return ch.isalnum() or ch in "_'" or unicodedata.category(ch).startswith("M")
+
+
 def tokens(text: str) -> set[str]:
-    return set(_WORD.findall(normalize(text)))
+    out: set[str] = set()
+    word: list[str] = []
+    for ch in normalize(text) + " ":
+        if _word_char(ch):
+            word.append(ch)
+        elif word:
+            out.add("".join(word))
+            word = []
+    return out
 
 
 class KeywordClassifier:

@@ -50,11 +50,61 @@ Every account is `<handle>@example.com` with password `DEMO_PASSWORD` (default `
 | `auditor` | read-only auditor |
 
 The seed creates fictional departments (Triage, Roads, Sanitation, Water Supply, Drainage, Street Lighting),
-6 teams, 4 **fictional** grid wards (`demo-w1`…`demo-w4`, not real boundaries), 14 categories (Telugu demo
-labels, not reviewed by a native speaker), 6 routing rules, 4 **illustrative** SLA policies, and 7 services.
+6 teams, 4 **fictional** grid wards (`demo-w1`…`demo-w4`, not real boundaries), 17 categories (Telugu demo
+labels, not reviewed by a native speaker), 6 routing rules, 4 **illustrative** SLA policies, and 8 services. Electrical hazards (exposed wires, damaged poles or boxes) are a category family with **no routing rule**, because no verified department mapping exists; those reports go to the triage desk.
 It also creates 11 complaints across statuses: in progress, resolved with evidence, closed with feedback,
 an unmapped category, an uncategorised report, a public duplicate pair, an overdue drain (its `created_at`
 is backdated by the seed and labelled as such), rejected, and withdrawn.
+
+### Web UI (optional)
+
+A React + TypeScript single-page app in `web/` sits on top of the same API.
+
+```bash
+cd web && npm install
+npm run build            # → web/dist, served by FastAPI at http://127.0.0.1:8000/
+npm run dev              # or: Vite dev server on :5173, proxying /api to uvicorn on :8000
+npm test                 # vitest unit tests (roles, localisation, queue/analytics logic, helpers)
+npx tsc -b               # type check
+```
+
+| Route | Who | What |
+|---|---|---|
+| `/` | everyone | Landing page: live "Where would it go?" router (`POST /api/routing/suggest`), how a report moves, what you can report (incl. electrical hazards), a service finder, FAQ |
+| `/signin`, `/signup` | everyone | Sign-in. In demo mode an "Explore demo accounts" button lists the seed accounts by role; choosing one still signs in through `/api/auth/login` |
+| `/app`, `/app/report`, `/app/services[/:code]` | residents only | My reports, the guided report form, service search with details |
+| `/app/reports/:id` | resident (own) and staff in scope | Case detail: honest status trail, conversation, history from the server; staff actions by role |
+| `/app/notifications` | signed in | Activity, mark read / mark all read (persisted) |
+| `/app/queue` | staff | Role-specific default view, filters in the URL, real refresh |
+| `/app/analytics` | supervisors, triage desk, admins, auditor | Scoped metrics, "met the target" with its definition, CSV export |
+
+**Roles.** Navigation and route guards come from one map (`web/src/roles.ts`). Staff (Road Officer, Road
+Supervisor, Triage Desk, Municipal Admin, Auditor) never see My reports, Report an issue or Find a service;
+a direct link shows a "not part of your role" page. The server enforces every permission independently.
+
+**Demo mode** comes from `GET /api/meta` (setting `DEMO_MODE`; default on outside production, off in production).
+It controls the DEMO badge and whether demo accounts are offered. No credentials are built into the bundle.
+
+**Language.** English and Telugu; every UI string lives in `web/src/i18n/messages/*.ts`, a test checks that
+each English key has a Telugu entry with the same placeholders, and missing text falls back to English. The
+Telugu was drafted for the demo and **has not been reviewed by a native speaker**. Category labels come from
+the API in the chosen language; service names and descriptions are English only (the page says so).
+
+**Design ("Civic Glass").** One system mixing five styles, each with a job: an Apple-like base (Inter, large
+radii, spring motion), frosted glass surfaces over a soft colour mesh (solid fallbacks when blur is unsupported
+or reduced transparency is requested), neo-brutal ink borders and offset shadows on the things you press,
+CSS-only 3D art (an isometric city in the hero, the map pin, tilt on category cards; static under reduced
+motion), and minimal solid tables for work screens. Headlines use Space Grotesk; Telugu uses Noto Sans Telugu.
+The logo is a city block with a path to a service node (`web/src/components/Logo.tsx`, `web/public/favicon.svg`).
+There are no photographs; every picture is drawn in code.
+
+**Privacy.** Photos are re-encoded on upload, which strips EXIF/GPS (`app/services/media.py`). The report form
+attaches no location unless the resident chooses a ward, types a landmark, or presses "Use my location", shows
+exactly what will be sent, and never prints coordinates. Exact coordinates are shown only to staff.
+
+**Verified so far.** A scripted headless-Chrome run signed in as each demo role, opened every page of that role at
+1440 px and 390 px, and recorded the navigation shown, console errors (none) and horizontal overflow (none). Direct
+links outside a role showed the guard page. Telugu pages were checked the same way.
 
 ---
 

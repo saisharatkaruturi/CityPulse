@@ -1,0 +1,73 @@
+/*
+ * Sign-in and sign-up (Civic Glass: frosted card on the aurora, a dark art panel with a brutal shadow and a 3D-tilted mark). The form sits on paper and is usable at once; the ink panel beside it carries the
+ * mark, which draws its path once on load (static under reduced motion). The panel folds away on phones.
+ */
+.auth { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 16px; min-height: 100dvh; padding: 16px; }
+.auth-side { display: grid; grid-template-rows: auto 1fr auto; gap: 24px; padding: 20px var(--gutter); min-width: 0; }
+.auth-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.auth-brand { text-decoration: none; }
+.auth-main { display: grid; align-items: center; justify-items: center; padding-block: 24px; }
+.auth-card { width: min(100%, 480px); display: grid; gap: 16px; padding: clamp(24px, 4vw, 40px); border-radius: var(--radius-lg); background: var(--glass-strong); }
+.auth-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.25rem); line-height: 1; letter-spacing: -0.045em; }
+:lang(te) .auth-title { line-height: 1.3; letter-spacing: 0; }
+.auth-lead { color: var(--ink-2); font-size: 1.0625rem; }
+.auth-form { margin-top: 8px; }
+.auth-error { font-size: var(--step-body); }
+.btn-block { width: 100%; }
+.auth-alt { color: var(--ink-2); }
+.auth-alt a { font-weight: 600; color: var(--ink); display: inline-flex; align-items: center; gap: 4px; text-underline-offset: 3px; }
+.auth-foot { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; color: var(--ink-3); }
+
+.pw { position: relative; }
+.pw .input { padding-right: 52px; }
+.pw-toggle { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 44px; height: 40px;
+  border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink-2); cursor: pointer; }
+.pw-toggle:hover { background: var(--paper-2); color: var(--ink); }
+
+.field-error { animation: err-in var(--dur-base) var(--ease); }
+@keyframes err-in { from { opacity: 0; transform: translateY(-4px); } }
+
+.demo-entry { display: grid; gap: 10px; justify-items: start; margin-top: 8px; padding-top: 20px; border-top: 1px solid var(--rule); }
+.demo-entry .btn { border: var(--brutal-border); box-shadow: var(--brutal-shadow-sm); background: var(--pop-lemon); }
+.demo-entry .btn:hover { transform: translate(-1px, -1px); box-shadow: var(--brutal-shadow); }
+
+.auth-art {
+  background: var(--night); color: var(--night-ink); display: grid; align-content: center; gap: 22px; position: relative; overflow: hidden; isolation: isolate;
+  padding: clamp(32px, 5vw, 72px); border-radius: var(--radius-lg); border: 3px solid var(--ink); box-shadow: 10px 10px 0 var(--signal);
+  perspective: 900px;
+}
+.auth-art::before { content: ""; position: absolute; inset: 0; z-index: -1;
+  background: radial-gradient(28vmax 22vmax at 80% 10%, rgba(255, 179, 64, 0.25), transparent 70%), radial-gradient(26vmax 22vmax at 0% 100%, rgba(156, 201, 255, 0.18), transparent 70%); }
+.auth-mark svg { width: clamp(120px, 14vw, 180px); height: auto; filter: drop-shadow(10px 12px 0 rgba(255, 179, 64, 0.9)); }
+.auth-mark { transform: rotateY(-18deg) rotateX(10deg); transform-style: preserve-3d; animation: mark-in 900ms var(--spring) both; }
+@keyframes mark-in { from { opacity: 0; transform: translateY(24px) rotateY(-40deg) rotateX(20deg); } }
+.auth-art-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.75rem, 1.1rem + 1.6vw, 2.5rem); line-height: 1.12; letter-spacing: -0.02em; max-width: 18ch; }
+:lang(te) .auth-art-title { line-height: 1.4; letter-spacing: 0; }
+.auth-art-body { color: var(--night-ink-2); max-width: 40ch; font-size: 1.0625rem; }
+
+.demo-dialog { display: grid; gap: 20px; }
+.demo-dialog-lead { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; color: var(--ink-2); }
+.demo-dialog-lead > span:last-child { flex: 1 1 260px; }
+.demo-group { display: grid; gap: 6px; }
+.demo-group h3 { font-size: 1.0625rem; font-weight: 700; }
+.demo-group ul { list-style: none; display: grid; gap: 6px; margin-top: 4px; }
+.demo-account {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name go" "email go"; gap: 0 12px; width: 100%;
+  min-height: 58px; padding: 10px 14px; text-align: left; border: 2px solid var(--ink); border-radius: var(--radius-md); background: var(--surface);
+  cursor: pointer; box-shadow: var(--brutal-shadow-sm);
+  transition: transform var(--dur-fast) var(--spring), box-shadow var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+.demo-account:hover:not(:disabled) { transform: translate(-2px, -2px); box-shadow: var(--brutal-shadow); background: var(--signal-soft); }
+.demo-account:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: none; }
+.demo-account:disabled { opacity: 0.6; cursor: progress; }
+.demo-name { grid-area: name; font-weight: 700; }
+.demo-email { grid-area: email; font-size: var(--step-small); color: var(--ink-3); }
+.demo-go { grid-area: go; align-self: center; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--paper-2); border: 2px solid var(--ink); transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
+.demo-account:hover:not(:disabled) .demo-go { background: var(--signal); transform: translateX(3px); }
+
+@media (max-width: 860px) {
+  .auth { grid-template-columns: minmax(0, 1fr); padding: 0; }
+  .auth-card { padding: 22px 18px; }
+  .auth-art { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .auth-mark, .field-error { animation: none; } }

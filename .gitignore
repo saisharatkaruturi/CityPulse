@@ -8,3 +8,7 @@ var/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+.taste-skill/
+web/node_modules/
+web/dist/
+web/*.tsbuildinfo

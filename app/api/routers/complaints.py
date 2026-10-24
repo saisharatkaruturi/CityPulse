@@ -92,6 +92,7 @@ def list_(principal: CurrentUser, db: DB, pg: PageParams,
           ward_id: uuid.UUID | None = None, created_from: datetime | None = None,
           created_to: datetime | None = None, q: Annotated[str | None, Query(max_length=100)] = None,
           overdue: bool | None = None, unassigned: bool | None = None, mine: bool = False,
+          assigned_to_me: bool = False,
           sort: Annotated[str, Query(pattern="^-?(created_at|updated_at|priority|due_at)$")] = "-created_at",
           ) -> Page[ComplaintListItem]:
     for dt in (created_from, created_to):
@@ -100,7 +101,7 @@ def list_(principal: CurrentUser, db: DB, pg: PageParams,
     f = svc.ComplaintFilters(status=status_, category_id=category_id, department_id=department_id,
                              assigned_officer_id=assigned_officer_id, priority=priority, ward_id=ward_id,
                              created_from=created_from, created_to=created_to, q=q, overdue=overdue, mine=mine,
-                             unassigned=unassigned, sort=sort)
+                             unassigned=unassigned, assigned_to_me=assigned_to_me, sort=sort)
     rows, total = svc.list_complaints(db, principal, f, pg.offset, pg.page_size)
     items = []
     for c in rows:

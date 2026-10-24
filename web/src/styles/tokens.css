@@ -1,0 +1,197 @@
+/*
+ * Design tokens for Your City, Your Services — "Civic Glass".
+ *
+ * One system that combines five styles, each with a job:
+ *  - Apple-like base: Inter for reading and controls, generous space, large radii, spring motion.
+ *  - Glassmorphism: frosted surfaces (header, sidebar, panels, dialogs) over a soft aurora colour mesh.
+ *    Falls back to solid surfaces when backdrop-filter is unsupported or the user prefers less transparency.
+ *  - Neo-brutalism: thick ink borders and hard offset shadows mark the things you press (primary actions,
+ *    category cards, badges), with bold colour pops.
+ *  - 3D: an isometric CSS city in the hero, tilt on interactive cards, the map pin. Static under reduced motion.
+ *  - Minimalism: work screens (queues, tables, forms) stay quiet and solid so they are fast to scan.
+ * Text always sits on a surface that keeps WCAG AA contrast; colour never carries meaning alone.
+ */
+:root {
+  /* ground and ink */
+  --paper: #f3f1ec;
+  --paper-2: #e9e5dc;          /* tone step: hovered row, input well */
+  --paper-3: #ddd7ca;
+  --surface: #ffffff;
+  --ink: #0d1626;              /* text, borders of brutal elements, primary fills */
+  --ink-2: #33405a;            /* secondary text, 9:1 on paper */
+  --ink-3: #56627a;            /* meta text, 5.6:1 on paper and on glass */
+  --line: rgba(13, 22, 38, 0.12);
+  --line-strong: rgba(13, 22, 38, 0.38);
+  --rule: rgba(13, 22, 38, 0.08);
+
+  /* the accent and the neo-brutal colour pops */
+  --signal: #ffb340;           /* marigold: action fill, ink text on it 10:1 */
+  --signal-soft: #ffe8c2;
+  --signal-ink: #0d1626;
+  --signal-deep: #8f4a00;      /* accent as text on light surfaces (5.6:1) */
+  --pop-sky: #9cc9ff;
+  --pop-mint: #8fe3bf;
+  --pop-coral: #ff9b8a;
+  --pop-lilac: #c9bcff;
+  --pop-lemon: #f6e27a;
+
+  /* inverted field */
+  --night: #0d1626;
+  --night-2: #1b2840;
+  --night-ink: #f3f1ec;
+  --night-ink-2: #b8c2d4;
+
+  /* glass */
+  --glass: rgba(255, 255, 255, 0.62);
+  --glass-strong: rgba(255, 255, 255, 0.82);
+  --glass-dark: rgba(13, 22, 38, 0.62);
+  --glass-edge: rgba(255, 255, 255, 0.7);
+  --glass-blur: saturate(170%) blur(22px);
+  --glass-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 12px 40px rgba(13, 22, 38, 0.10);
+
+  /* neo-brutal */
+  --brutal-border: 2px solid var(--ink);
+  --brutal-shadow: 4px 4px 0 var(--ink);
+  --brutal-shadow-sm: 2px 2px 0 var(--ink);
+  --brutal-shadow-lg: 7px 7px 0 var(--ink);
+
+  /* status: hue + words, never hue alone */
+  --ok: #17663f;      --ok-bg: #d6f3e3;
+  --warn: #7f4300;    --warn-bg: #ffeccc;
+  --bad: #a11d16;     --bad-bg: #ffe0db;
+  --info: #1b4b96;    --info-bg: #dbe8ff;
+  --neutral: #3a4458; --neutral-bg: #e8e6e1;
+
+  /* issue families */
+  --cat-roads: #46526a;
+  --cat-sanitation: #3f7a2e;
+  --cat-water: #1f63d1;
+  --cat-drainage: #0f7474;
+  --cat-lighting: #9a6200;
+  --cat-electrical: #c2410c;
+  --cat-other: #6b5ca5;
+  --fam-roads-pop: #c7d0e0;
+  --fam-sanitation-pop: var(--pop-mint);
+  --fam-water-pop: var(--pop-sky);
+  --fam-drainage-pop: #9fe3e0;
+  --fam-lighting-pop: var(--pop-lemon);
+  --fam-electrical-pop: var(--pop-coral);
+  --fam-other-pop: var(--pop-lilac);
+
+  /* type: Space Grotesk headlines (the brutal edge), Inter for everything read and operated (the Apple base) */
+  --font-display: "Space Grotesk", "Noto Sans Telugu", "Inter", system-ui, sans-serif;
+  --font-text: "Inter", "Noto Sans Telugu", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --step-small: 0.875rem;
+  --step-body: 1rem;
+  --step-lead: clamp(1.125rem, 1.02rem + 0.45vw, 1.375rem);
+  --step-title: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
+  --step-head: clamp(2.25rem, 1.4rem + 3.4vw, 4.25rem);
+  --step-display: clamp(2.75rem, 1.3rem + 5.8vw, 6.75rem);
+  --lh-tight: 1.02;
+  --lh-text: 1.55;
+
+  /* space, radius (Apple-like: large, continuous) */
+  --gutter: clamp(16px, 4vw, 48px);
+  --max: 1320px;
+  --radius-lg: 28px;
+  --radius: 20px;            /* panels, cards */
+  --radius-md: 14px;         /* inputs, buttons */
+  --radius-sm: 10px;
+  --radius-pill: 999px;
+  --control-h: 46px;
+
+  --float-shadow: 0 24px 64px rgba(13, 22, 38, 0.24), 0 2px 8px rgba(13, 22, 38, 0.12);
+
+  /* motion: Apple-like spring and a quick ease */
+  --dur-fast: 150ms;
+  --dur-base: 320ms;
+  --dur-slow: 700ms;
+  --ease: cubic-bezier(0.2, 0.75, 0.2, 1);
+  --spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  --focus: 0 0 0 3px var(--paper), 0 0 0 6px var(--ink);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: var(--step-body);
+  line-height: var(--lh-text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-wrap: break-word;   /* long words still wrap, but tables keep real column widths */
+  font-feature-settings: "cv11", "ss01";
+}
+:lang(te) { line-height: 1.75; }  /* Telugu needs room above and below for vowel signs */
+img, svg { display: block; max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: inherit; }
+h1, h2, h3, h4 { margin: 0; text-wrap: balance; }
+p { margin: 0; text-wrap: pretty; }
+ul, ol { margin: 0; padding: 0; }
+:focus-visible { outline: none; box-shadow: var(--focus); border-radius: 6px; }
+::selection { background: var(--signal); color: var(--signal-ink); }
+
+/* ---- style primitives ------------------------------------------------------------------------------ */
+
+/* Aurora: the soft colour mesh glass sits on. Fixed, behind everything, never moves under reduced motion. */
+.aurora { position: relative; isolation: isolate; }
+.aurora::before {
+  content: ""; position: fixed; inset: -20vmax; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(42vmax 34vmax at 8% 6%, rgba(156, 201, 255, 0.95), transparent 68%),
+    radial-gradient(36vmax 30vmax at 92% 10%, rgba(255, 179, 64, 0.6), transparent 68%),
+    radial-gradient(44vmax 34vmax at 72% 96%, rgba(143, 227, 191, 0.85), transparent 68%),
+    radial-gradient(34vmax 28vmax at 4% 90%, rgba(201, 188, 255, 0.8), transparent 68%),
+    radial-gradient(30vmax 24vmax at 50% 50%, rgba(255, 155, 138, 0.25), transparent 70%),
+    var(--paper);
+  animation: aurora-drift 40s ease-in-out infinite alternate;
+}
+@keyframes aurora-drift { to { transform: translate3d(2vmax, -1.5vmax, 0) scale(1.04); } }
+
+.glass {
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+}
+.glass-strong { background: var(--glass-strong); }
+.brutal { border: var(--brutal-border); box-shadow: var(--brutal-shadow); }
+
+/* Without blur support, or when the user asks for less transparency, glass becomes a solid surface. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root { --glass: #fbfaf7; --glass-strong: #ffffff; --glass-dark: #0d1626; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root { --glass: #fbfaf7; --glass-strong: #ffffff; --glass-dark: #0d1626; --glass-blur: none; }
+}
+@media (prefers-contrast: more) {
+  :root { --glass: #ffffff; --glass-strong: #ffffff; --line: rgba(13, 22, 38, 0.4); --ink-3: #3a4458; }
+}
+
+/* The hidden attribute must win over any component display rule. */
+[hidden] { display: none !important; }
+
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.skip-link {
+  position: absolute; left: 12px; top: -60px; z-index: 100; background: var(--ink); color: var(--paper);
+  padding: 10px 16px; border-radius: var(--radius-sm); text-decoration: none; font-weight: 600;
+}
+.skip-link:focus { top: 12px; }
+.num { font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important; scroll-behavior: auto !important;
+  }
+  .aurora::before { animation: none; }
+}

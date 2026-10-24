@@ -184,6 +184,8 @@ class ServiceSearchResult(Schema):
     service: ServiceOut
     score: float
     matched_on: list[str]
+    # The category that made this service relevant, when the ranking used one (explains the match).
+    matched_category: CategoryOut | None = None
 
 
 class ServiceSearchResponse(Schema):
@@ -409,6 +411,10 @@ class AnalyticsOut(Schema):
     sla_met: int
     sla_measured: int
     sla_compliance: float | None
+    sla_policies_active: int
+    sla_policies_illustrative: bool
+    assignment_hours_median: float | None
+    assignment_measured: int
     by_department: list[AnalyticsGroup]
     by_category: list[AnalyticsGroup]
     by_ward: list[AnalyticsGroup]

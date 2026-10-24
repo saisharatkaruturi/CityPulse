@@ -29,6 +29,18 @@ def list_(principal: CurrentUser, db: DB, pg: PageParams, unread_only: bool = Fa
                                  page=pg.page, page_size=pg.page_size)
 
 
+@router.post("/read-all", summary="Mark all of your in-app notifications read; returns how many changed")
+def mark_all_read(principal: CurrentUser, db: DB) -> dict[str, int]:
+    rows = db.scalars(select(Notification).where(Notification.recipient_id == principal.id,
+                                                 Notification.channel == NotificationChannel.in_app,
+                                                 Notification.read_at.is_(None))).all()
+    now = utcnow()
+    for n in rows:
+        n.read_at = now
+    db.commit()
+    return {"updated": len(rows)}
+
+
 @router.patch("/{notification_id}/read", response_model=NotificationOut, summary="Mark your notification read")
 def mark_read(notification_id: uuid.UUID, principal: CurrentUser, db: DB) -> NotificationOut:
     n = db.get(Notification, notification_id)

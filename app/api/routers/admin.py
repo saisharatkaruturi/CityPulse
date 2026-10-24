@@ -15,7 +15,7 @@ from app.api.routers.catalog import category_out, service_out
 from app.core.errors import NotFound, ValidationFailed
 from app.core.permissions import P
 from app.core.time import utcnow
-from app.domain.enums import AnnouncementState, OutboxState
+from app.domain.enums import AnnouncementState, ComplaintStatus, OutboxState, Priority
 from app.models import (
     AuditLog,
     Department,
@@ -51,19 +51,27 @@ def get_analytics(principal: CurrentUser, db: DB, date_from: datetime, date_to: 
                                               ward_id))
 
 
-@router.get("/analytics/export.csv", summary="CSV export (bounded range; formula-injection safe)",
+@router.get("/analytics/export.csv",
+            summary="CSV export of reports in your scope (UTF-8 with BOM; bounded range; formula-injection safe)",
             responses={200: {"content": {"text/csv": {}}}})
 def export_csv(principal: CurrentUser, db: DB, date_from: datetime, date_to: datetime,
-               department_id: uuid.UUID | None = None) -> Response:
+               department_id: uuid.UUID | None = None, category_id: uuid.UUID | None = None,
+               status_: Annotated[list[ComplaintStatus] | None, Query(alias="status")] = None,
+               priority: Priority | None = None) -> Response:
     _aware(date_from, date_to)
-    body = analytics.export_csv(db, principal, date_from, date_to, department_id)
+    body, count = analytics.export_csv(db, principal, date_from, date_to, department_id, category_id, status_,
+                                       priority)
     audit.record(db, actor_id=principal.id, action="analytics.export", entity_type="export", entity_id="csv",
                  after={"date_from": date_from.isoformat(), "date_to": date_to.isoformat(),
-                        "department_id": str(department_id) if department_id else None})
+                        "department_id": str(department_id) if department_id else None,
+                        "category_id": str(category_id) if category_id else None, "rows": count})
     db.commit()
-    return Response(body, media_type="text/csv",
-                    headers={"Content-Disposition": 'attachment; filename="complaints.csv"',
-                             "Cache-Control": "no-store"})
+    filename = f"ycys-reports_{date_from:%Y-%m-%d}_to_{date_to:%Y-%m-%d}.csv"
+    # The BOM makes spreadsheet apps read the file as UTF-8, so Telugu text survives.
+    return Response(("\ufeff" + body).encode("utf-8"), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": f'attachment; filename="{filename}"',
+                             "Cache-Control": "no-store", "X-Row-Count": str(count),
+                             "Access-Control-Expose-Headers": "Content-Disposition, X-Row-Count"})
 
 
 # --- Departments, teams, officers -----------------------------------------------------------------

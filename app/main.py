@@ -5,10 +5,11 @@ from __future__ import annotations
 import logging
 import time
 import uuid
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy import text
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
@@ -99,7 +100,29 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return JSONResponse({"status": "unavailable"}, status_code=503)
         return JSONResponse({"status": "ready"})
 
+    _mount_web(app, settings)
     return app
+
+
+_RESERVED_PREFIXES = ("api/", "docs", "redoc", "openapi.json", "health", "ready")
+
+
+def _mount_web(app: FastAPI, settings: Settings) -> None:
+    """Serve the built single-page app. Unknown non-API paths fall back to index.html for client routing."""
+    dist = Path(settings.web_dist_dir).resolve()
+    index = dist / "index.html"
+    if not index.is_file():
+        return
+
+    @app.get("/{path:path}", include_in_schema=False)
+    def web(path: str, request: Request) -> Response:
+        if path.startswith(_RESERVED_PREFIXES):
+            return JSONResponse(error_body(request, "not_found", "Not found"), status_code=404)
+        candidate = (dist / path).resolve()
+        if path and candidate.is_file() and candidate.is_relative_to(dist):
+            cache = "public, max-age=31536000, immutable" if path.startswith("assets/") else "no-cache"
+            return FileResponse(candidate, headers={"Cache-Control": cache})
+        return FileResponse(index, headers={"Cache-Control": "no-cache"})
 
 
 app = create_app()

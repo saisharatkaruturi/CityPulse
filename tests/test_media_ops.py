@@ -91,7 +91,7 @@ def test_health_ready_request_id_and_error_envelope(client):
     r = client.get("/api/users/me", headers={"X-Request-ID": "abc12345-req"})
     assert r.headers["X-Request-ID"] == "abc12345-req"
     assert r.json()["error"]["request_id"] == "abc12345-req" and r.json()["error"]["code"] == "unauthenticated"
-    assert client.get("/nope").json()["error"]["code"] == "not_found"
+    assert client.get("/api/nope").json()["error"]["code"] == "not_found"
     assert r.headers["X-Content-Type-Options"] == "nosniff"
 
 

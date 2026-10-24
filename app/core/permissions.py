@@ -44,7 +44,8 @@ _MANAGER = _STAFF_WORK | {P.complaint_assign, P.complaint_priority_override, P.c
 ROLE_PERMISSIONS: dict[Role, frozenset[P]] = {
     Role.resident: frozenset({P.complaint_create}),
     Role.field_officer: frozenset(_STAFF_WORK | {P.complaint_create}),
-    Role.supervisor: frozenset(_MANAGER | {P.complaint_create}),
+    # Supervisors export only their own departments' reports (analytics rows are scoped the same way).
+    Role.supervisor: frozenset(_MANAGER | {P.complaint_create, P.analytics_export}),
     Role.municipal_admin: frozenset(_MANAGER | {P.complaint_create, P.analytics_export, P.admin_config}),
     Role.system_admin: frozenset(_MANAGER | {P.complaint_create, P.analytics_export, P.admin_config,
                                              P.admin_roles, P.audit_read, P.ops_outbox}),

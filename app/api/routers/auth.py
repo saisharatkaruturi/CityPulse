@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Request, status
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.api.deps import DB, CurrentUser, SettingsDep
 from app.core import ratelimit
 from app.core.time import utcnow
-from app.models import NotificationPreference
+from app.models import Department, NotificationPreference, User
 from app.schemas.auth import (
+    DemoAccountOut,
     LoginRequest,
+    MetaOut,
     NotificationPreferencesIn,
     NotificationPreferencesOut,
     RegisterRequest,
@@ -22,10 +26,17 @@ from app.services import auth as auth_service
 router = APIRouter(prefix="/api", responses=ERROR_RESPONSES)
 
 
-def user_out(user) -> UserOut:  # noqa: ANN001
+def user_out(user, db: Session | None = None) -> UserOut:  # noqa: ANN001
+    grants = []
+    for r in user.roles:
+        g = RoleGrantOut.model_validate(r)
+        dept = db.get(Department, r.department_id) if db is not None and r.department_id else None
+        if dept is not None:
+            g.department_code, g.department_name = dept.code, dept.name
+        grants.append(g)
     return UserOut(id=user.id, email=user.email, display_name=user.display_name, phone=user.phone,
                    preferred_language=user.preferred_language, is_active=user.is_active,
-                   roles=[RoleGrantOut.model_validate(r) for r in user.roles], created_at=user.created_at)
+                   roles=grants, created_at=user.created_at)
 
 
 @router.post("/auth/register", response_model=UserOut, status_code=status.HTTP_201_CREATED, tags=["auth"],
@@ -50,9 +61,25 @@ def logout(principal: CurrentUser, db: DB) -> None:
     auth_service.logout(db, principal)
 
 
+@router.get("/meta", response_model=MetaOut, tags=["meta"],
+            summary="Public client configuration: demo mode and, only in demo mode, the fictional demo accounts")
+def meta(db: DB, settings: SettingsDep) -> MetaOut:
+    accounts: list[DemoAccountOut] = []
+    if settings.demo_mode_enabled:
+        from app import seed  # local import: seed data is only consulted in demo mode
+
+        names = {h: n for h, n, _ in seed.USERS}
+        emails = [seed.email(h) for _, h, _ in seed.DEMO_ACCOUNTS]
+        existing = set(db.scalars(select(User.email).where(User.email.in_(emails), User.is_active.is_(True))))
+        accounts = [DemoAccountOut(group=g, email=seed.email(h), display_name=names.get(h, h), description=d,
+                                   password=settings.demo_password)
+                    for g, h, d in seed.DEMO_ACCOUNTS if seed.email(h) in existing]
+    return MetaOut(app_name=settings.app_name, demo_mode=settings.demo_mode_enabled, demo_accounts=accounts)
+
+
 @router.get("/users/me", response_model=UserOut, tags=["users"])
-def me(principal: CurrentUser) -> UserOut:
-    return user_out(principal.user)
+def me(principal: CurrentUser, db: DB) -> UserOut:
+    return user_out(principal.user, db)
 
 
 @router.patch("/users/me", response_model=UserOut, tags=["users"],
@@ -62,7 +89,7 @@ def update_me(req: UserUpdate, principal: CurrentUser, db: DB) -> UserOut:
     for field, value in req.model_dump(exclude_unset=True, exclude_none=True).items():
         setattr(user, field, value)
     db.commit()
-    return user_out(user)
+    return user_out(user, db)
 
 
 @router.get("/users/me/notification-preferences", response_model=NotificationPreferencesOut, tags=["users"])

@@ -37,6 +37,21 @@ def current_principal(
 CurrentUser = Annotated[Principal, Depends(current_principal)]
 
 
+def optional_principal(
+    request: Request,
+    db: DB,
+    settings: SettingsDep,
+    creds: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
+) -> Principal | None:
+    """For public discovery endpoints: anonymous callers are allowed, but a supplied token must be valid."""
+    if creds is None:
+        return None
+    return current_principal(request, db, settings, creds)
+
+
+MaybeUser = Annotated[Principal | None, Depends(optional_principal)]
+
+
 @dataclass(frozen=True)
 class Pagination:
     page: int

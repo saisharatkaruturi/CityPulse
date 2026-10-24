@@ -195,10 +195,11 @@ def test_analytics_metrics_match_fixture(api, db):
 
 def test_csv_export_authorised_and_formula_safe(api, db):
     api.report(title="=HYPERLINK(\"http://evil\")", description="Formula injection attempt in title.")
-    assert api.get("/api/admin/analytics/export.csv", "roads.supervisor", params=window()).status_code == 403
+    for who in ("resident1", "roads.officer1"):
+        assert api.get("/api/admin/analytics/export.csv", who, params=window()).status_code == 403
     r = api.get("/api/admin/analytics/export.csv", "auditor", params=window())
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/csv")
-    rows = list(csv.reader(io.StringIO(r.text)))
+    rows = list(csv.reader(io.StringIO(r.content.decode("utf-8-sig"))))
     assert rows[1][1].startswith("'=")
     assert db.scalar(select(AuditLog).where(AuditLog.action == "analytics.export"))
     too_long = api.get("/api/admin/analytics/export.csv", "auditor",
