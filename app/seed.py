@@ -427,8 +427,10 @@ def seed_complaints(db: Session) -> int:
 
 def run(db: Session) -> dict:
     settings = get_settings()
-    if settings.is_production:
-        raise SystemExit("Refusing to seed demo data in production")
+    # Production refuses demo data unless the operator explicitly opted in with DEMO_MODE=true
+    # (e.g. a public hackathon demo deployment).
+    if settings.is_production and settings.demo_mode is not True:
+        raise SystemExit("Refusing to seed demo data in production (set DEMO_MODE=true to allow)")
     seed_reference(db)
     n = seed_complaints(db)
     return {"complaints_created": n}

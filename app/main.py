@@ -100,6 +100,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return JSONResponse({"status": "unavailable"}, status_code=503)
         return JSONResponse({"status": "ready"})
 
+    @app.get("/api/cron/worker", tags=["ops"], include_in_schema=False)
+    def cron_worker(request: Request) -> JSONResponse:
+        """One worker pass for schedulers that can't run a long-lived process (e.g. Vercel Cron).
+
+        Disabled unless CRON_SECRET is set; the caller must send `Authorization: Bearer <CRON_SECRET>`.
+        """
+        import hmac
+
+        secret = settings.cron_secret
+        supplied = request.headers.get("authorization", "")
+        if not secret or not hmac.compare_digest(supplied.encode(), f"Bearer {secret}".encode()):
+            return JSONResponse(error_body(request, "not_found", "Not found"), status_code=404)
+        from app.jobs.worker import run_once
+
+        return JSONResponse({"status": "ok", "results": run_once(session_factory())})
+
     _mount_web(app, settings)
     return app
 

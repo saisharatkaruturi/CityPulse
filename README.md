@@ -390,3 +390,34 @@ No license has been specified in this repository yet. Unless a license is added,
 <p align="center">
   Built by <a href="https://github.com/saisharatkaruturi">Sai Sharat Karuturi</a>
 </p>
+
+## Production deployment (Vercel)
+
+Live: **https://your-city-your-services.vercel.app** (Vercel project `lisa09/your-city-your-services`, region `bom1`).
+
+| Piece | How it runs |
+|---|---|
+| Web app | `web/` built by Vercel (`vercel.json` → `web/dist`), served from the CDN; unknown paths fall back to `index.html` |
+| API | `api/index.py` exposes the FastAPI app as one Python function; `/api/*`, `/health`, `/ready` are rewritten to it |
+| Database | Supabase Postgres (ap-south-1) via the Vercel Supabase integration, which injects `POSTGRES_URL` (pooled). The app accepts `DATABASE_URL` or `POSTGRES_URL`, strips Supabase's `supa=` marker and disables prepared statements for the transaction pooler |
+| Photos | Private Vercel Blob store (`BLOB_READ_WRITE_TOKEN` selects it automatically). Every read needs the store token; photos reach users only through `/api/media/{id}/content` after the permission check |
+| Worker | Vercel Cron calls `GET /api/cron/worker` daily at 03:00 UTC (Hobby-plan limit) with `Authorization: Bearer $CRON_SECRET`; the endpoint 404s without it |
+
+Production env vars: `ENVIRONMENT=production`, `JWT_SECRET`, `CRON_SECRET`, `DEMO_MODE=true` (public hackathon demo:
+seeded fictional data and the demo-account button; seeding in production is refused unless this is set explicitly),
+`MAX_UPLOAD_BYTES=4000000` (Vercel caps request bodies at 4.5 MB).
+
+Deploy and schema changes:
+
+```bash
+npx vercel deploy --prod                                          # build + deploy
+# migrations/seed run from a workstation against the direct (non-pooled) connection:
+DATABASE_URL="$POSTGRES_URL_NON_POOLING" uv run python -m app.cli migrate
+DATABASE_URL="$POSTGRES_URL_NON_POOLING" uv run python -m app.cli seed
+```
+
+Limitations on Vercel: the rate limiter is in-memory, so limits apply per function instance, not globally; the worker
+runs once a day on the Hobby plan (hourly SLA reminders need Pro or an external scheduler hitting the cron endpoint).
+
+---
+

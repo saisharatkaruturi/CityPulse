@@ -26,7 +26,13 @@ def build_engine(url: str, echo: bool = False) -> Engine:
         if db_path and db_path != ":memory:":
             Path(db_path).parent.mkdir(parents=True, exist_ok=True)
     else:
-        kwargs["pool_pre_ping"] = True
+        # Small pool with recycling: serverless instances are many, short-lived and frozen between
+        # requests, and hosted Postgres (Neon) drops idle connections.
+        kwargs.update(pool_pre_ping=True, pool_size=2, max_overflow=3, pool_recycle=300)
+        if "+psycopg" in url:
+            # Transaction-mode poolers (Supabase Supavisor, PgBouncer) can't keep server-side
+            # prepared statements across transactions.
+            kwargs["connect_args"] = {"prepare_threshold": None}
     engine = create_engine(url, **kwargs)
     if url.startswith("sqlite"):
         event.listen(engine, "connect", _sqlite_pragmas)

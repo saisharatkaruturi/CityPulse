@@ -5,7 +5,7 @@ import type { MessageKey } from '../../i18n';
 // ---- report form ----------------------------------------------------------------------------------
 
 /** Limits mirror app/schemas/complaints.py (Title 3–200, Description 10–5000, 5 media) and settings. */
-export const LIMITS = { titleMin: 3, titleMax: 200, descMin: 10, descMax: 5000, maxPhotos: 5, maxBytes: 5_000_000 };
+export const LIMITS = { titleMin: 3, titleMax: 200, descMin: 10, descMax: 5000, maxPhotos: 5, maxBytes: 4_000_000 };
 export const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export type FormErrors = Partial<Record<'title' | 'description', MessageKey>>;

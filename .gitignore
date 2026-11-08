@@ -12,3 +12,6 @@ var/
 web/node_modules/
 web/dist/
 web/*.tsbuildinfo
+
+.vercel
+.env*

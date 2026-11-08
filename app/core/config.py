@@ -10,7 +10,7 @@ from enum import StrEnum
 from functools import lru_cache
 from typing import Annotated, Literal
 
-from pydantic import Field, ValidationError, field_validator, model_validator
+from pydantic import AliasChoices, Field, ValidationError, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 DEFAULT_DEV_SECRET = "dev-only-insecure-secret-change-me-0123456789"
@@ -29,7 +29,9 @@ class Settings(BaseSettings):
     environment: Environment = Environment.development
     debug: bool = False
 
-    database_url: str = "sqlite:///./var/ycys.db"
+    # POSTGRES_URL is what the Vercel Supabase/Postgres integrations inject (pooled connection).
+    database_url: str = Field(default="sqlite:///./var/ycys.db",
+                              validation_alias=AliasChoices("DATABASE_URL", "POSTGRES_URL", "database_url"))
     sql_echo: bool = False
 
     # Auth
@@ -42,7 +44,7 @@ class Settings(BaseSettings):
     # HTTP limits
     cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=list)
     max_request_bytes: int = 1_000_000
-    max_upload_bytes: int = 5_000_000
+    max_upload_bytes: int = 4_000_000  # under Vercel's 4.5 MB request cap
     default_page_size: int = 20
     max_page_size: int = 100
     rate_limit_enabled: bool = True
@@ -52,6 +54,10 @@ class Settings(BaseSettings):
 
     # Media
     media_root: str = "./var/media"
+    # "auto" picks Vercel Blob when BLOB_READ_WRITE_TOKEN is set, otherwise the local filesystem.
+    storage_backend: Literal["auto", "local", "vercel_blob"] = "auto"
+    blob_read_write_token: str = ""
+    blob_access: Literal["private", "public"] = "private"  # must match the Blob store's access level
     orphan_media_max_age_hours: int = 24
 
     # Workflow policy (illustrative defaults, not official municipal policy)
@@ -82,6 +88,8 @@ class Settings(BaseSettings):
     outbox_max_attempts: int = Field(default=5, ge=1, le=20)
     outbox_base_backoff_seconds: int = 30
     worker_interval_seconds: int = 30
+    # Shared secret for the scheduled worker endpoint (Vercel Cron sends it as a Bearer token).
+    cron_secret: str = ""
 
     # Demo
     demo_password: str = "demo-password-123"
@@ -96,6 +104,23 @@ class Settings(BaseSettings):
             return [o.strip() for o in v.split(",") if o.strip()]
         return v
 
+    @field_validator("database_url", mode="after")
+    @classmethod
+    def _normalise_db_url(cls, v: str) -> str:
+        # Hosted Postgres providers (Neon, Vercel) hand out postgres:// URLs; use the psycopg 3 driver.
+        for prefix in ("postgres://", "postgresql://"):
+            if v.startswith(prefix):
+                v = "postgresql+psycopg://" + v[len(prefix):]
+                break
+        if v.startswith("postgresql") and "?" in v:
+            # Supabase adds a non-libpq "supa=" marker that psycopg rejects.
+            from urllib.parse import parse_qsl, urlencode
+
+            base, query = v.split("?", 1)
+            kept = [(k, val) for k, val in parse_qsl(query, keep_blank_values=True) if k != "supa"]
+            v = base + ("?" + urlencode(kept) if kept else "")
+        return v
+
     @model_validator(mode="after")
     def _validate_for_environment(self) -> Settings:
         if self.environment == Environment.production:
@@ -104,6 +129,8 @@ class Settings(BaseSettings):
                 problems.append("JWT_SECRET must be set to a random value of at least 32 characters")
             if self.debug:
                 problems.append("DEBUG must be false in production")
+            if self.storage_backend == "vercel_blob" and not self.blob_read_write_token:
+                problems.append("BLOB_READ_WRITE_TOKEN must be set when STORAGE_BACKEND=vercel_blob")
             if "*" in self.cors_origins:
                 problems.append("CORS_ORIGINS must list explicit origins in production")
             if problems:
@@ -113,6 +140,12 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.environment == Environment.production
+
+    @property
+    def effective_storage_backend(self) -> str:
+        if self.storage_backend == "auto":
+            return "vercel_blob" if self.blob_read_write_token else "local"
+        return self.storage_backend
 
     @property
     def demo_mode_enabled(self) -> bool:

@@ -1,0 +1,13 @@
+.venv
+var
+.env
+.env.*
+**/__pycache__
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.taste-skill
+web/node_modules
+web/dist
+tests
+your_city_your_services_claude_code_master_prompt*.md
