@@ -15,3 +15,6 @@ web/*.tsbuildinfo
 
 .vercel
 .env*
+
+# original local screenshot folder (copies live in docs/screenshots)
+screenshots cityPulse/

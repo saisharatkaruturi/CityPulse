@@ -102,6 +102,48 @@ Permissions are enforced by the backend, not just by hiding frontend navigation 
 - Image re-encoding to remove embedded EXIF/GPS metadata.
 - Authorized media access and safeguards against duplicate event delivery.
 
+## 📸 Screenshots
+
+All data shown is fictional demo data. Try it live at **[your-city-your-services.vercel.app](https://your-city-your-services.vercel.app)**.
+
+### Public site
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/01-home-hero.png" alt="Home page hero with 3D city"/><br/><sub><b>Home</b>: report what's broken, find who handles it</sub></td>
+    <td width="50%"><img src="docs/screenshots/02-routing-preview.png" alt="Routing preview search"/><br/><sub><b>Routing preview</b>: describe a problem, see where it would go</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/03-status-slip.png" alt="Report status slip"/><br/><sub><b>Status slip</b>: every stage a report really reaches</sub></td>
+    <td><img src="docs/screenshots/04-one-desk-map.png" alt="One desk routing map"/><br/><sub><b>One desk</b>: six services, routed by rules</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/05-what-to-report.png" alt="What can you report categories"/><br/><sub><b>What to report</b>: categories by service</sub></td>
+    <td><img src="docs/screenshots/06-find-a-service.png" alt="Find a service search"/><br/><sub><b>Find a service</b>: ranked search in your own words</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/07-faq.png" alt="FAQ accordion"/><br/><sub><b>FAQ</b></sub></td>
+    <td><img src="docs/screenshots/08-call-to-action.png" alt="Report call to action"/><br/><sub><b>Call to action</b></sub></td>
+  </tr>
+</table>
+
+### Signing in and reporting an issue
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/09-sign-in-demo.png" alt="Sign in with demo accounts"/><br/><sub><b>Sign in</b>: with one-click demo accounts</sub></td>
+    <td width="50%"><img src="docs/screenshots/10-report-choose-category.png" alt="Report: choose a category"/><br/><sub><b>Report, step 1</b>: choose the kind of problem</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/11-report-more-categories.png" alt="Report: more categories"/><br/><sub>Drainage, street lighting, electrical hazards and more</sub></td>
+    <td><img src="docs/screenshots/12-report-describe.png" alt="Report: describe it"/><br/><sub><b>Describe it</b>: title, details, language, routing hint</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/13-report-location-photos.png" alt="Report: location and photos"/><br/><sub><b>Location and photos</b>: optional, privacy-first</sub></td>
+    <td><img src="docs/screenshots/14-report-visibility.png" alt="Report: who can see it"/><br/><sub><b>Visibility</b>: private by default</sub></td>
+  </tr>
+</table>
+
 ## 🧰 Technology Stack
 
 | Layer | Technologies |
