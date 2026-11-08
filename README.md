@@ -9,6 +9,15 @@
 </p>
 
 <p align="center">
+  <a href="https://your-city-your-services.vercel.app"><img src="https://img.shields.io/badge/Live_Demo-your--city--your--services.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live demo on Vercel"/></a>
+</p>
+
+<p align="center">
+  🔗 <strong><a href="https://your-city-your-services.vercel.app">https://your-city-your-services.vercel.app</a></strong><br/>
+  Demo sign-in: use <em>Explore demo accounts</em> on the sign-in page (password <code>demo-password-123</code>, fictional data only)
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Python-3.12%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
   <img src="https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"/>
   <img src="https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React"/>
